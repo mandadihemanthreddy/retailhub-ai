@@ -1,0 +1,38 @@
+🟢 Step 1: Start the Backend Server
+This ensures the AI/logic engine is active to receive messages.
+
+Open your first terminal and go into the backend folder:
+bash
+cd "c:\Ai-Service Agent\retail-chatbot\backend"
+Start the server:
+bash
+node index.js
+What to check: The terminal should output Server running on port 5000. Leave this terminal open and running.
+🔵 Step 2: Start the Web Frontend (React)
+This will launch the Web UI.
+
+Open a second terminal and go into the frontend folder:
+bash
+cd "c:\Ai-Service Agent\retail-chatbot\frontend"
+Start the React app:
+bash
+npm run dev
+What to check:
+Open your browser and go to http://localhost:5173.
+The dark mode "Retail Chatbot" interface should load.
+Type show products and hit Send.
+You should instantly see the beautifully styled chat bubbled response: "Here are some products 🛒".
+📱 Step 3: Start the Mobile App (Expo)
+This will launch the mobile version of the chatbot.
+
+Open a third terminal and go into the mobile folder:
+bash
+cd "c:\Ai-Service Agent\retail-chatbot\mobile"
+Start the Expo server:
+bash
+npx expo start
+What to check:
+A QR code will appear in your terminal.
+Open the Expo Go app on your physical iPhone or Android device and scan the QR code.
+The Mobile chatbot will load.
+Type sales in the mobile app and hit Send. You should see the response "Sales are increasing 📈" slide into view!
