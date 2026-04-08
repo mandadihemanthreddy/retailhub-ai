@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { 
   View, 
   Text, 

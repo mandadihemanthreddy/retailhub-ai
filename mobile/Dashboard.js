@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity, Platform, Alert } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const screenWidth = Dimensions.get("window").width;
 const BACKEND_URL = "http://10.124.18.203:5000";
