@@ -8,55 +8,76 @@ import {
   StyleSheet,
   Platform,
   KeyboardAvoidingView,
-  RefreshControl
+  RefreshControl,
+  ActivityIndicator
 } from "react-native";
+import { supabase } from "./supabaseClient";
+import Auth from "./components/Auth";
 import Dashboard from "./Dashboard";
+import Inventory from "./Inventory";
+
+// 🚀 DYNAMIC IP CONFIGURATION
+// To run on a real phone: Replace this with your computer's IP (e.g., 10.124.18.203)
+// To run on Android Emulator: Use 10.0.2.2
+const BACKEND_URL = Platform.OS === 'android' && !__DEV__ ? "http://10.124.18.203:5000" : (Platform.OS === 'android' ? "http://10.0.2.2:5000" : "http://10.124.18.203:5000");
+
 
 export default function App() {
+  const [session, setSession] = useState(null);
   const [activeTab, setActiveTab] = useState("chat");
   const [message, setMessage] = useState("");
   const [chat, setChat] = useState([
-    { sender: "bot", text: "Welcome to RetailBot! 🛍️\nHow can I assist you today?" }
+    { sender: "bot", text: "Welcome to RetailBot! 🛍️\nConnect your account to sync history." }
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef();
 
-  const handleVoiceInput = () => {
-    setIsListening(true);
-    setTimeout(() => {
-      setMessage("top products");
-      setIsListening(false);
-    }, 1500);
-  };
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
 
-  const fetchHistory = () => {
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+  }, []);
+
+  const handleSignOut = () => supabase.auth.signOut();
+
+  const fetchHistory = async () => {
+    if (!session) return;
     setRefreshing(true);
-    fetch("http://10.142.13.107:5000/history/user1")
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.length > 0) {
-          const formatted = data.flatMap(msg => [
-            { sender: "user", text: msg.message },
-            { sender: "bot", text: msg.response },
-          ]);
-          setChat(formatted);
+    try {
+      console.log(`Attempting to fetch history from: ${BACKEND_URL}/history/${session.user.id}`);
+      const res = await fetch(`${BACKEND_URL}/history/${session.user.id}`, {
+
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
         }
-        setRefreshing(false);
-      })
-      .catch(err => {
-        console.error("Could not fetch history", err);
-        setRefreshing(false);
       });
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const formatted = data.flatMap(msg => [
+          { sender: "user", text: msg.message },
+          { sender: "bot", text: msg.response },
+        ]);
+        setChat(formatted);
+      }
+    } catch (err) {
+      console.error("Could not fetch history", err);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    if (session) fetchHistory();
+  }, [session]);
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !session) return;
 
     const userMessage = { sender: "user", text: message };
     setChat((prev) => [...prev, userMessage]);
@@ -65,11 +86,11 @@ export default function App() {
     setIsTyping(true);
 
     try {
-      // Configured explicitly with the resolved laptop local IP Address!
-      const res = await fetch("http://10.142.13.107:5000/chat", {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
         },
         body: JSON.stringify({ message: currentMessage }),
       });
@@ -78,11 +99,29 @@ export default function App() {
       const botMessage = { sender: "bot", text: data.reply };
       setChat((prev) => [...prev, botMessage]);
     } catch (err) {
-      setChat((prev) => [...prev, { sender: "bot", text: "Network Error: Could not reach backend server at 10.142.13.107:5000." }]);
+      setChat((prev) => [...prev, { sender: "bot", text: "Network Error: Could not reach backend server. Check your connection!" }]);
     } finally {
       setIsTyping(false);
     }
   };
+  const handleVoiceInput = () => {
+
+    if (isListening) {
+      setIsListening(false);
+      // Logic to stop listening would go here
+    } else {
+      setIsListening(true);
+      // In a real Expo app, we'd use expo-speech / expo-voice
+      // For now, we'll simulate listening and then "paste" a demo query
+      setTimeout(() => {
+        setIsListening(false);
+        setMessage("Show me the top selling items");
+      }, 2000);
+    }
+  };
+
+
+  if (!session) return <Auth />;
 
   return (
     <View style={[styles.container, {paddingTop: Platform.OS === 'ios' ? 40 : 0}]}>
@@ -96,23 +135,34 @@ export default function App() {
         </View>
         <View style={styles.tabContainer}>
           <TouchableOpacity 
-            style={[styles.tab, activeTab === "chat" && styles.activeTab]} 
-            onPress={() => setActiveTab("chat")}
+            style={[styles.tab, activeTab === "inventory" && styles.activeTab]} 
+            onPress={() => setActiveTab("inventory")}
           >
-            <Text style={[styles.tabText, activeTab === "chat" && styles.activeTabText]}>💬 Chatbot</Text>
+            <Text style={[styles.tabText, activeTab === "inventory" && styles.activeTabText]}>📦 Stock</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === "dashboard" && styles.activeTab]} 
             onPress={() => setActiveTab("dashboard")}
           >
-            <Text style={[styles.tabText, activeTab === "dashboard" && styles.activeTabText]}>📊 Insights</Text>
+            <Text style={[styles.tabText, activeTab === "dashboard" && styles.activeTabText]}>📊 Analytics</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === "chat" && styles.activeTab]} 
+            onPress={() => setActiveTab("chat")}
+          >
+            <Text style={[styles.tabText, activeTab === "chat" && styles.activeTabText]}>💬 Agent</Text>
           </TouchableOpacity>
         </View>
+
       </View>
 
-      {activeTab === "dashboard" ? (
-        <Dashboard />
+      {activeTab === "inventory" ? (
+        <Inventory session={session} />
+      ) : activeTab === "dashboard" ? (
+        <Dashboard session={session} />
       ) : (
+
+
         <>
 
       <KeyboardAvoidingView 

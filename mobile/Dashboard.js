@@ -1,16 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, ActivityIndicator, TouchableOpacity, Platform } from 'react-native';
 import { BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get("window").width;
+const BACKEND_URL = Platform.OS === 'android' && !__DEV__ ? "http://10.124.18.203:5000" : (Platform.OS === 'android' ? "http://10.0.2.2:5000" : "http://10.124.18.203:5000");
 
-export default function Dashboard() {
+export default function Dashboard({ session }) {
   const [products, setProducts] = useState([]);
   const [sortBy, setSortBy] = useState('sales');
 
   useEffect(() => {
-    fetch("http://10.142.13.107:5000/products")
+    if (!session) return;
+    fetch(`${BACKEND_URL}/products`, {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`
+      }
+    })
       .then(res => res.json())
+
       .then(data => setProducts(data))
       .catch(err => console.error(err));
   }, []);
