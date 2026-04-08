@@ -11,6 +11,7 @@ import {
   Platform
 } from 'react-native';
 import { supabase } from './supabaseClient';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 
 const BACKEND_URL = "http://10.124.18.203:5000";
 
@@ -79,7 +80,10 @@ export default function Inventory({ session }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 40}}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>📦 Catalog</Text>
+        <View style={{flexDirection:'row', alignItems:'center', gap:8}}>
+          <MaterialCommunityIcons name="archive-outline" size={24} color="#3b82f6" />
+          <Text style={styles.title}>Catalog</Text>
+        </View>
         <TouchableOpacity style={styles.addBtn} onPress={() => Alert.alert("Feature", "Single product entry coming soon!")}>
           <Text style={styles.addBtnText}>+ Add</Text>
         </TouchableOpacity>

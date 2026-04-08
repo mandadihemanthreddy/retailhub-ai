@@ -112,6 +112,23 @@ app.get("/", (req, res) => {
   res.send("Backend running 🚀");
 });
 
+// 🎀 Dynamic AI Greeting Service
+app.get("/welcome", async (req, res) => {
+  try {
+    // metadata is available on req.user from verifyUser middleware
+    const businessType = req.user.user_metadata?.business_type || "Retail";
+    const name = req.user.user_metadata?.full_name || "Merchant";
+
+    const prompt = `Act as a Senior Retail Operations AI. Generate a professional, concise 1-sentence welcome message for ${name}, who runs a ${businessType} business. 
+    Focus on readiness to analyze sales and stock. No emojis. Stay extremely professional and high-end.`;
+
+    const result = await executeGeminiWithFailover(prompt);
+    res.json({ greeting: result.response.text().trim() });
+  } catch (err) {
+    res.json({ greeting: "Retail Intelligence System online. Systems initialized and ready for deployment." });
+  }
+});
+
 // 🔐 Authentication & Security Foundation Middleware
 const verifyUser = async (req, res, next) => {
   const authHeader = req.headers.authorization;

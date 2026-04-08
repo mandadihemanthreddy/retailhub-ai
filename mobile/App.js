@@ -27,9 +27,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [activeTab, setActiveTab] = useState("chat");
   const [message, setMessage] = useState("");
-  const [chat, setChat] = useState([
-    { sender: "bot", text: "Welcome to RetailBot! 🛍️\nConnect your account to sync history." }
-  ]);
+  const [chat, setChat] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,7 +72,23 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (session) fetchHistory();
+    const fetchWelcome = async () => {
+      if (!session) return;
+      try {
+        const res = await fetch(`${BACKEND_URL}/welcome`, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+        });
+        const data = await res.json();
+        setChat([{ sender: "bot", text: data.greeting }]);
+      } catch (e) {
+        setChat([{ sender: "bot", text: "Retail AI Operations System Online." }]);
+      }
+    };
+
+    if (session) {
+      fetchWelcome();
+      fetchHistory();
+    }
   }, [session]);
 
   const sendMessage = async () => {
@@ -128,10 +142,13 @@ export default function App() {
     <View style={[styles.container, {paddingTop: Platform.OS === 'ios' ? 40 : 0}]}>
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <Text style={styles.headerTitle}>🏪 RetailHub</Text>
+          <View style={{flexDirection:'row', alignItems:'center', gap:10}}>
+            <MaterialCommunityIcons name="store-outline" size={24} color="#3b82f6" />
+            <Text style={styles.headerTitle}>RetailHub AI</Text>
+          </View>
           <View style={styles.onlineStatus}>
             <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Online</Text>
+            <Text style={styles.statusText}>Active</Text>
           </View>
         </View>
         <View style={styles.tabContainer}>
@@ -139,19 +156,22 @@ export default function App() {
             style={[styles.tab, activeTab === "inventory" && styles.activeTab]} 
             onPress={() => setActiveTab("inventory")}
           >
-            <Text style={[styles.tabText, activeTab === "inventory" && styles.activeTabText]}>📦 Stock</Text>
+            <MaterialCommunityIcons name="package-variant-closed" size={20} color={activeTab === "inventory" ? "#3b82f6" : "#94a3b8"} />
+            <Text style={[styles.tabText, activeTab === "inventory" && styles.activeTabText]}>Stock</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === "dashboard" && styles.activeTab]} 
             onPress={() => setActiveTab("dashboard")}
           >
-            <Text style={[styles.tabText, activeTab === "dashboard" && styles.activeTabText]}>📊 Analytics</Text>
+             <Ionicons name="stats-chart" size={20} color={activeTab === "dashboard" ? "#3b82f6" : "#94a3b8"} />
+            <Text style={[styles.tabText, activeTab === "dashboard" && styles.activeTabText]}>Analytics</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.tab, activeTab === "chat" && styles.activeTab]} 
             onPress={() => setActiveTab("chat")}
           >
-            <Text style={[styles.tabText, activeTab === "chat" && styles.activeTabText]}>💬 Agent</Text>
+            <MaterialCommunityIcons name="robot" size={20} color={activeTab === "chat" ? "#3b82f6" : "#94a3b8"} />
+            <Text style={[styles.tabText, activeTab === "chat" && styles.activeTabText]}>Agent</Text>
           </TouchableOpacity>
         </View>
 
@@ -198,16 +218,28 @@ export default function App() {
       </ScrollView>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipContainer}>
         <TouchableOpacity style={styles.chip} onPress={() => setMessage("Show products")}>
-          <Text style={styles.chipText}>📦 Products</Text>
+          <View style={{flexDirection:'row', alignItems:'center', gap:4}}>
+            <MaterialCommunityIcons name="cube-outline" size={14} color="#3b82f6" />
+            <Text style={styles.chipText}>Products</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.chip} onPress={() => setMessage("Which items are low in stock?")}>
-          <Text style={styles.chipText}>📉 Low Stock</Text>
+           <View style={{flexDirection:'row', alignItems:'center', gap:4}}>
+            <Ionicons name="trending-down" size={14} color="#ef4444" />
+            <Text style={styles.chipText}>Low Stock</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.chip} onPress={() => setMessage("What should I restock?")}>
-          <Text style={styles.chipText}>⭐ Restock Suggest</Text>
+           <View style={{flexDirection:'row', alignItems:'center', gap:4}}>
+            <Ionicons name="sparkles" size={14} color="#fbbf24" />
+            <Text style={styles.chipText}>Restock Suggest</Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.chip} onPress={() => setMessage("Give me business summary")}>
-          <Text style={styles.chipText}>📊 Summary</Text>
+           <View style={{flexDirection:'row', alignItems:'center', gap:4}}>
+            <Ionicons name="analytics" size={14} color="#3b82f6" />
+            <Text style={styles.chipText}>Summary</Text>
+          </View>
         </TouchableOpacity>
       </ScrollView>
 
@@ -216,7 +248,7 @@ export default function App() {
             style={[styles.iconButton, isListening && {backgroundColor: '#ef4444'}]} 
             onPress={handleVoiceInput}
           >
-            <Text style={{fontSize: 20}}>🎤</Text>
+            <Ionicons name={isListening ? "mic" : "mic-outline"} size={22} color={isListening ? "white" : "#94a3b8"} />
           </TouchableOpacity>
           <TextInput
             style={styles.input}
@@ -231,7 +263,7 @@ export default function App() {
             onPress={sendMessage}
             disabled={!message.trim() || isTyping}
           >
-            <Text style={styles.sendIcon}>➤</Text>
+            <Ionicons name="send" size={20} color="white" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

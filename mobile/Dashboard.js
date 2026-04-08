@@ -79,11 +79,23 @@ export default function Dashboard({ session }) {
         />
       </View>
 
-      <Text style={styles.listTitle}>Inventory Details</Text>
+      <View style={styles.headerRow}>
+        <View style={{flexDirection:'row', alignItems:'center', gap:8}}>
+          <MaterialCommunityIcons name="archive-outline" size={24} color="#3b82f6" />
+          <Text style={styles.listTitle}>Inventory Details</Text>
+        </View>
+        <TouchableOpacity style={styles.addBtn} onPress={() => Alert.alert("Feature", "Single product entry coming soon!")}>
+          <Text style={styles.addBtnText}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
+
       {sortedProducts.map((p, i) => (
         <View key={i} style={[styles.productRow, p.stock < 10 && styles.lowStockRow]}>
           <View style={{flex: 1}}>
-            <Text style={styles.productName}>{p.name} {p.stock < 10 ? '🚨' : ''}</Text>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
+              <Text style={styles.productName}>{p.name}</Text>
+              {p.stock < 10 ? <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#ef4444" /> : null}
+            </View>
             <Text style={styles.productPrice}>${p.price}</Text>
           </View>
           <View style={styles.statsCol}>

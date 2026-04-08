@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Store, Bot, User, Mic, LogOut, Package, BarChart3, MessageSquare } from 'lucide-react';
+import { Send, Store, Bot, User, Mic, LogOut, Package, BarChart3, MessageSquare, TrendingDown, Sparkles, Layers } from 'lucide-react';
 import ProductsDashboard from './components/ProductsDashboard';
 import InventoryManager from './components/InventoryManager';
 import { supabase } from './supabaseClient';
@@ -10,9 +10,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('inventory');
   
   const [message, setMessage] = useState("");
-  const [chat, setChat] = useState([
-    { sender: "bot", text: "Welcome to RetailBot! 🛍️\nAsk me about stock, sales insights, or for product recommendations." }
-  ]);
+  const [chat, setChat] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const chatEndRef = useRef(null);
@@ -54,6 +52,15 @@ function App() {
   useEffect(() => {
     if (!session) return; // Don't fetch history if not logged in
 
+    fetch(`http://localhost:5000/welcome`, {
+      headers: { 'Authorization': `Bearer ${session.access_token}` },
+    })
+      .then(res => res.json())
+      .then(data => {
+        setChat([{ sender: "bot", text: data.greeting }]);
+      })
+      .catch(() => setChat([{ sender: "bot", text: "Retail Intelligence System online." }]));
+
     fetch(`http://localhost:5000/history/${session.user.id}`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` },
     })
@@ -64,10 +71,7 @@ function App() {
             { sender: "user", text: msg.message },
             { sender: "bot", text: msg.response },
           ]);
-          setChat([
-            { sender: "bot", text: "Welcome to Retail Assistant! 🛍️\nHow can I help you manage your store today?" },
-            ...formatted
-          ]);
+          setChat(prev => [...prev, ...formatted]);
         }
       })
       .catch(err => console.error("Could not fetch history", err));
@@ -198,9 +202,15 @@ function App() {
             </div>
 
             <div style={{ display: 'flex', gap: '8px', padding: '0 24px 12px 24px', overflowX: 'auto', flexShrink: 0, marginTop: 'auto' }}>
-              <button onClick={() => setMessage("Which items are low in stock?")} style={{background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>📉 Low Stock</button>
-              <button onClick={() => setMessage("What should I restock?")} style={{background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>⭐ Restock Suggest</button>
-              <button onClick={() => setMessage("Give me business summary")} style={{background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>📊 Summary</button>
+              <button onClick={() => setMessage("Which items are low in stock?")} style={{display:'flex', alignItems:'center', gap:'6px', background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>
+                <TrendingDown size={14} color="#ef4444" /> Low Stock
+              </button>
+              <button onClick={() => setMessage("What should I restock?")} style={{display:'flex', alignItems:'center', gap:'6px', background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>
+                <Sparkles size={14} color="#fbbf24" /> Restock Suggest
+              </button>
+              <button onClick={() => setMessage("Give me business summary")} style={{display:'flex', alignItems:'center', gap:'6px', background:'rgba(255,255,255,0.05)', color:'white', border:'1px solid rgba(255,255,255,0.1)', padding:'6px 12px', borderRadius:'16px', fontSize:'0.85rem', cursor:'pointer', whiteSpace: 'nowrap'}}>
+                <Layers size={14} color="#3b82f6" /> Summary
+              </button>
             </div>
 
             <div className="input-area">
