@@ -52,7 +52,7 @@ function App() {
   useEffect(() => {
     if (!session) return; // Don't fetch history if not logged in
 
-    fetch(`http://localhost:5000/welcome`, {
+    fetch(`${import.meta.env.VITE_API_URL}/welcome`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` },
     })
       .then(res => res.json())
@@ -61,7 +61,7 @@ function App() {
       })
       .catch(() => setChat([{ sender: "bot", text: "Retail Intelligence System online." }]));
 
-    fetch(`http://localhost:5000/history/${session.user.id}`, {
+    fetch(`${import.meta.env.VITE_API_URL}/history/${session.user.id}`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` },
     })
       .then(res => res.json())
@@ -90,7 +90,7 @@ function App() {
     setIsTyping(true);
 
     try {
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/chat`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -104,7 +104,7 @@ function App() {
       const botMessage = { sender: "bot", text: data.reply || "I couldn't process that request." };
       setChat((prev) => [...prev, botMessage]);
     } catch (error) {
-      setChat((prev) => [...prev, { sender: "bot", text: "Oops, the backend server isn't responding. Ensure it's running on port 5000." }]);
+      setChat((prev) => [...prev, { sender: "bot", text: "Oops, the backend server isn't responding. Ensure it's running." }]);
     } finally {
       setIsTyping(false);
     }

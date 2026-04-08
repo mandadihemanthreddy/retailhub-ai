@@ -14,7 +14,7 @@ const ProductsDashboard = ({ session }) => {
 
   useEffect(() => {
     if (!session) return;
-    fetch('http://localhost:5000/products', {
+    fetch(`${import.meta.env.VITE_API_URL}/products`, {
       headers: { 'Authorization': `Bearer ${session.access_token}` }
     })
       .then(res => res.json())

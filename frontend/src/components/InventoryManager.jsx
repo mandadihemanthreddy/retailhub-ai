@@ -10,7 +10,7 @@ const InventoryManager = ({ session }) => {
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch('http://localhost:5000/products', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/products`, {
         headers: { 'Authorization': `Bearer ${session.access_token}` }
       });
       const data = await res.json();
@@ -43,7 +43,7 @@ const InventoryManager = ({ session }) => {
     if (!textToUpload) return alert("Please paste CSV data or drop a file first");
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:5000/upload', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/upload`, {
         method: "POST",
         headers: { 
           'Authorization': `Bearer ${session.access_token}`,
