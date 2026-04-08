@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { Audio } from 'expo-av';
 import { 
   View, 
   Text, 
@@ -42,6 +43,8 @@ export default function App() {
     supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
+
+    return () => {};
   }, []);
 
   const handleSignOut = () => supabase.auth.signOut();
@@ -120,24 +123,64 @@ export default function App() {
       setIsTyping(false);
     }
   };
-  const handleVoiceInput = () => {
+  const recordingRef = useRef(null);
+
+  const handleVoiceInput = async () => {
     if (isListening) {
       setIsListening(false);
+      try {
+        const recording = recordingRef.current;
+        if (!recording) return;
+
+        await recording.stopAndUnloadAsync();
+        const uri = recording.getURI();
+        
+        console.log("🎙️ Recording captured:", uri);
+        
+        // 📤 High-Speed AI Transcription Pipeline
+        const formData = new FormData();
+        formData.append('audio', {
+          uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
+          name: 'audio.m4a',
+          type: 'audio/m4a',
+        });
+
+        const res = await fetch(`${BACKEND_URL}/transcribe`, {
+          method: 'POST',
+          body: formData,
+          headers: { 
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        const data = await res.json();
+        if (data.transcription) {
+          setMessage(data.transcription);
+        }
+      } catch (err) {
+        console.error("Transcription pipeline error:", err);
+      }
     } else {
-      setIsListening(true);
-      const queries = [
-        "What are my top 3 profit items?",
-        "Show me items with stock below 50",
-        "Generate a business health summary",
-        "Which products have high sales but low stock?",
-        "Predict sales for the next week"
-      ];
-      
-      setTimeout(() => {
+      try {
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== 'granted') return alert("Microphone access is required for AI Voice commands.");
+
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true,
+        });
+
+        const { recording } = await Audio.Recording.createAsync(
+          Audio.RecordingOptionsPresets.HIGH_QUALITY
+        );
+        
+        recordingRef.current = recording;
+        setIsListening(true);
+      } catch (err) {
+        console.error("Failed to start recording", err);
         setIsListening(false);
-        const randomQuery = queries[Math.floor(Math.random() * queries.length)];
-        setMessage(randomQuery);
-      }, 2500);
+      }
     }
   };
 

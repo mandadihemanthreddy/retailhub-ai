@@ -3,6 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
+const multer = require("multer");
+const fs = require("fs");
 
 const OPENROUTER_KEYS = [
   process.env.OPENROUTER_API_KEY,
@@ -18,6 +20,14 @@ const NVIDIA_KEY = process.env.NVIDIA_API_KEY;
 
 let activeOpenRouterIndex = 0;
 let activeGeminiIndex = 0;
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// 💿 Multi-platform Audio Ingestion Layer
+const upload = multer({ dest: 'uploads/' });
+const genAI = new GoogleGenerativeAI(GEMINI_KEYS[0]);
 
 async function executeGeminiWithFailover(prompt) {
   // Priority 1: NVIDIA NIM (High Performance Inference)
@@ -99,17 +109,47 @@ async function executeGeminiWithFailover(prompt) {
   throw new Error("CRITICAL_AI_EXHAUSTED: All AI Failover layers are fully offline.");
 }
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
 // Supabase credentials initialized securely via environment variables
 const supabaseUrl = process.env.SUPABASE_URL; // Loaded from .env
 const supabaseKey = process.env.SUPABASE_KEY; // Loaded from .env
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-app.get("/", (req, res) => {
+app.post("/", (req, res) => {
   res.send("Backend running 🚀");
+});
+
+// 🎙️ High-Symmetry Voice Recognition Service
+app.post("/transcribe", upload.single('audio'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Audio data mismatch: No file received." });
+
+    console.log(`📡 Processing high-fidelity audio: ${req.file.originalname}`);
+    const audioBuffer = fs.readFileSync(req.file.path);
+    const audioBase64 = audioBuffer.toString('base64');
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const result = await model.generateContent([
+      "Act as an extremely accurate retail transcription engine. Listen to this audio and return ONLY the spoken text. No formatting, no extra words.",
+      {
+        inlineData: {
+          data: audioBase64,
+          mimeType: req.file.mimetype || "audio/m4a"
+        }
+      }
+    ]);
+
+    const transcription = result.response.text().trim();
+    console.log(`✅ Transcription complete: "${transcription}"`);
+    
+    // Auto-cleanup for privacy and storage efficiency
+    fs.unlinkSync(req.file.path);
+
+    res.json({ transcription });
+  } catch (err) {
+    if (req.file) fs.unlinkSync(req.file.path);
+    console.error("Transcription Failure Details:", err);
+    res.status(500).json({ error: "AI Transcription Engine Unavailable" });
+  }
 });
 
 // 🎀 Dynamic AI Greeting Service
