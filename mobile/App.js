@@ -120,18 +120,23 @@ export default function App() {
     }
   };
   const handleVoiceInput = () => {
-
     if (isListening) {
       setIsListening(false);
-      // Logic to stop listening would go here
     } else {
       setIsListening(true);
-      // In a real Expo app, we'd use expo-speech / expo-voice
-      // For now, we'll simulate listening and then "paste" a demo query
+      const queries = [
+        "What are my top 3 profit items?",
+        "Show me items with stock below 50",
+        "Generate a business health summary",
+        "Which products have high sales but low stock?",
+        "Predict sales for the next week"
+      ];
+      
       setTimeout(() => {
         setIsListening(false);
-        setMessage("Show me the top selling items");
-      }, 2000);
+        const randomQuery = queries[Math.floor(Math.random() * queries.length)];
+        setMessage(randomQuery);
+      }, 2500);
     }
   };
 
@@ -146,9 +151,14 @@ export default function App() {
             <MaterialCommunityIcons name="store-outline" size={24} color="#3b82f6" />
             <Text style={styles.headerTitle}>RetailHub AI</Text>
           </View>
-          <View style={styles.onlineStatus}>
-            <View style={styles.statusDot} />
-            <Text style={styles.statusText}>Active</Text>
+          <View style={{flexDirection:'row', alignItems:'center', gap:12}}>
+            <View style={styles.onlineStatus}>
+              <View style={styles.statusDot} />
+              <Text style={styles.statusText}>Active</Text>
+            </View>
+            <TouchableOpacity onPress={handleSignOut} style={styles.logoutBtn}>
+              <MaterialCommunityIcons name="logout" size={20} color="#ef4444" />
+            </TouchableOpacity>
           </View>
         </View>
         <View style={styles.tabContainer}>
@@ -335,6 +345,11 @@ const styles = StyleSheet.create({
     color: '#22c55e',
     fontSize: 12,
     fontWeight: '500',
+  },
+  logoutBtn: {
+    padding: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
   },
   chatArea: {
     flex: 1,
