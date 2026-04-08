@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { supabase } from './supabaseClient';
 
-const BACKEND_URL = Platform.OS === 'android' && !__DEV__ ? "http://10.124.18.203:5000" : (Platform.OS === 'android' ? "http://10.0.2.2:5000" : "http://10.124.18.203:5000");
+const BACKEND_URL = "http://10.124.18.203:5000";
 
 export default function Inventory({ session }) {
   const [products, setProducts] = useState([]);

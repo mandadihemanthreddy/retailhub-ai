@@ -17,9 +17,10 @@ import Dashboard from "./Dashboard";
 import Inventory from "./Inventory";
 
 // 🚀 DYNAMIC IP CONFIGURATION
-// To run on a real phone: Replace this with your computer's IP (e.g., 10.124.18.203)
-// To run on Android Emulator: Use 10.0.2.2
-const BACKEND_URL = Platform.OS === 'android' && !__DEV__ ? "http://10.124.18.203:5000" : (Platform.OS === 'android' ? "http://10.0.2.2:5000" : "http://10.124.18.203:5000");
+// Verified Local IP: 10.124.18.203
+const BACKEND_URL = Platform.OS === 'android' ? "http://10.124.18.203:5000" : "http://10.124.18.203:5000";
+// For Android Emulator (if local IP fails): Use http://10.0.2.2:5000
+
 
 
 export default function App() {
